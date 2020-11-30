@@ -1,14 +1,19 @@
 <template>
-  <div :style="{height:height,width:width,'background-color':'#fff2'}" />
+  <div style="width:100%;height:100%">
+    <div :style="{height:height,width:width,'background-color':'#fff2'}" />
+    <ConnectionDetail :visible.sync="show_detail" :data="show_detail_data" />
+  </div>
 </template>
 
 <script>
+import ConnectionDetail from './ConnectionDetail'
 import echarts from 'echarts'
 import 'echarts-gl'
 import { debounce } from '@/utils'
 import graph from './tmp_data'
 export default {
   name: 'ConnectionGraph',
+  components: { ConnectionDetail },
   props: {
     width: {
       type: String,
@@ -39,6 +44,8 @@ export default {
     return {
       chart: null,
       series: [],
+      show_detail: false,
+      show_detail_data: null
     }
   },
   computed: {
@@ -80,7 +87,13 @@ export default {
         series: series
       })
     },
+    handle_show_detail(event) {
+      // show dialog for detail
+      this.show_detail = true
+      this.show_detail_data = event
+    },
     initChartSkeleton() {
+      this.chart.on('dblclick', (event) => { this.handle_show_detail(event) })
       var categories = ['内部', '外部', '业务']
       graph.nodes.forEach(function (node, index) {
         node.value = node.symbolSize
@@ -114,7 +127,7 @@ export default {
           {
             name: '流量态势',
             type: 'graph',
-            layout: 'force',
+            // layout: 'force',
             draggable: true,
             color: ['#33c', '#c33', '#3c3'],
             force: {
