@@ -1,19 +1,14 @@
 <template>
-  <div style="width:100%;height:100%">
-    <div :style="{height:height,width:width,'background-color':'#fff2'}" />
-    <ConnectionDetail :visible.sync="show_detail" :data="show_detail_data" />
-  </div>
+  <div :style="{height:height,width:width,'background-color':'#fff2'}" />
 </template>
 
 <script>
-import ConnectionDetail from './ConnectionDetail'
 import echarts from 'echarts'
 import 'echarts-gl'
 import { debounce } from '@/utils'
-import graph from './tmp_data'
+import { formatSciItem } from '@/utils/math'
 export default {
   name: 'ConnectionGraph',
-  components: { ConnectionDetail },
   props: {
     width: {
       type: String,
@@ -44,8 +39,7 @@ export default {
     return {
       chart: null,
       series: [],
-      show_detail: false,
-      show_detail_data: null
+      graph: []
     }
   },
   computed: {
@@ -78,7 +72,14 @@ export default {
   methods: {
     initChart() {
       this.chart = echarts.init(this.$el)
-      this.initChartSkeleton()
+      this.chart.showLoading()
+      this.fileLoad('connection-data.json').then(data => {
+        this.graph = {
+          nodes: data
+        }
+        this.initChartSkeleton()
+        this.chart.hideLoading()
+      })
     },
     refreshData() {
       const series = this.series
@@ -88,32 +89,84 @@ export default {
       })
     },
     handle_show_detail(event) {
+      this.$refs.ConnectionDetail.show_dialog(event)
       // show dialog for detail
-      this.show_detail = true
-      this.show_detail_data = event
+      // let routeUrl = this.$router.resolve({
+      //   path: '/alicenter/detail',
+      //   query: {
+      //     id: id
+      //   }
+      // })
+      // window.open(routeUrl.href, '_blank')
+    },
+    getCategory(ip) {
+      const arrs = ip.split('.')
+      switch (parseInt(arrs[0]) + parseInt(arrs[1])) {
+        case 5 + 195: return 1
+        case 5 + 221: return 0
+        default: return 2
+      }
     },
     initChartSkeleton() {
+      const self = this
       this.chart.on('dblclick', (event) => { this.handle_show_detail(event) })
-      var categories = ['内部', '外部', '业务']
+      const categories = ['前台', '后台', '外部', '防御成功', '威胁']
+      const colors = ['#33c', '#3c3', '#aaa', '#cc3', '#c33']
+      let links = []
+      const graph = this.graph
+      console.log(graph)
       graph.nodes.forEach(function (node, index) {
-        node.value = node.symbolSize
-        // node.symbolSize /= 1.5
+        node.symbolSize = Math.log(node.value) * 3 + 2 + (node.danger ? 5 : 0)
         node.label = {
-          show: node.symbolSize > 30
+          show: node.value > 30
         }
         node.id = index
-        node.category = Math.floor(Math.random() * 3)
+        if (node.danger) {
+          node.category = 4
+        } else if (node.link && node.link.length > 10 && node.link.reduce((prev, cur) => graph.nodes[cur].value + parseInt(prev), 0) < node.link.length * 21) {
+          node.category = 3
+        } else {
+          node.category = self.getCategory(node.name)
+        }
+        if (node.link) links = links.concat(node.link.map(i => ({ target: index, source: i - 1 })))
       })
       const option = {
         title: {
-          text: '数据交互关系',
+          text: '数据交互关系图',
           subtext: 'Default layout',
           top: 'bottom',
-          left: 'right'
+          left: 'right',
+          textStyle: {
+            color: '#fff'
+          }
         },
-        tooltip: {},
+        tooltip: {
+          formatter: (params, ticket, async_callback) => {
+            let r = []
+            if (params.data.source) {
+              const { source, target } = params.data
+              r.push(`${graph.nodes[source].name} > ${graph.nodes[target].name}`)
+            } else {
+              const { category, details, value, link } = params.data
+              const sci = formatSciItem(value)
+              let links = ''
+              if (link) {
+                links = `${link.length}个连接`
+              }
+              r.push(`${categories[category]} ${params.name} (${sci.value}${sci.suffix}B)${links}<hr>${details ? '被连接情况' : '无详细信息'}:`)
+              if (details) {
+                const arrays = Object.keys(details).map(p => {
+                  const sci_port = formatSciItem(details[p])
+                  return `【${p}】${sci_port.value}${sci_port.suffix}B`
+                })
+                r = r.concat(arrays)
+              }
+            }
+            return r.join('<br>')
+          }
+        },
         legend: [{
-          // selectedMode: 'single',
+          // selectedMode: 'single',souu
           data: categories,
           bottom: '5%',
           textStyle: {
@@ -127,18 +180,18 @@ export default {
           {
             name: '流量态势',
             type: 'graph',
-            // layout: 'force',
-            draggable: true,
-            color: ['#33c', '#c33', '#3c3'],
+            layout: 'force',
+            color: colors,
             force: {
               repulsion: 500,
-              edgeLength: [10, 50],
+              edgeLength: [10, 150],
               friction: 0.6
             },
             data: graph.nodes,
-            links: graph.links,
+            links: links,
             categories: categories.map(i => ({ name: i })),
             roam: true,
+            edgeSymbol: ['none', 'arrow'],
             focusNodeAdjacency: true,
             itemStyle: {
               borderColor: '#fff',
@@ -159,3 +212,9 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+.full-panel {
+  height: 100%;
+  width: 100%;
+}
+</style>

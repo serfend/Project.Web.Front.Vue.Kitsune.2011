@@ -4,10 +4,10 @@
  *
  * @export
  * @param {int} value
+ * @param {int} decimal
  */
-export function formatSciItem(value) {
+export function formatSciItem(value, decimal = 2) {
   let suffix = ''
-
   if (value > 10e12) {
     suffix = 'T'
     value /= 10e11
@@ -21,7 +21,8 @@ export function formatSciItem(value) {
     suffix = 'K'
     value /= 10e2
   }
-  return { value, suffix }
+  const f = Math.pow(10, decimal)
+  return { value: Math.round(value * f) / f, suffix }
 }
 
 /**

@@ -1,6 +1,12 @@
 <template>
   <div id="container" class="container">
-    <div v-loading="loading" class="container-bg">
+    <el-button
+      type="text"
+      icon="el-icon-full-screen"
+      class="on-right-menu"
+      @click="show_only_connections=!show_only_connections"
+    >{{ show_only_connections?'取消全屏':'全屏' }}</el-button>
+    <div v-if="!show_only_connections" v-loading="loading" class="container-bg">
       <div class="statistics-title">
         <h1 class="content" style="margin:0.1rem">全网威胁情报态势</h1>
         <TimeCenter :time-sync-method="timeZone" />
@@ -26,11 +32,11 @@
             <div class="map1" />
             <div class="map2" />
             <div class="map3" />
-            <ConnectionGraph height="100%" />
+            <ConnectionGraph height="100%" :file-load="requestFile" />
           </div>
         </div>
       </section>
-      <div style="display:flex;position:fixed;bottom:0;">
+      <div class="on-right-menu">
         <EchartGeoLoader
           ref="echartGeoDriver"
           :file-load="requestFile"
@@ -39,6 +45,7 @@
         <SettingEngine ref="setting" :setting.sync="setting" @closed="settingUpdated" />
       </div>
     </div>
+    <ConnectionGraph v-else height="87%" :file-load="requestFile" />
   </div>
 </template>
 
@@ -105,7 +112,8 @@ export default {
           })).sort(cmp)
         },
       ], legend: legend
-    }
+    },
+    show_only_connections: false
   }),
   computed: {
     updatedSetting() {
@@ -203,6 +211,9 @@ export default {
           method(c)
         }
       }, 500)
+    },
+    updateLayout(val) {
+      this.show_only_connections = val
     }
   }
 }
@@ -210,4 +221,10 @@ export default {
 
 <style lang="scss" >
 @import './style/index.scss';
+.on-right-menu {
+  display: flex;
+  position: fixed;
+  top: 0;
+  right: 0;
+}
 </style>
