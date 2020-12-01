@@ -39,8 +39,8 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist
-          server-dir: /kitsune
+          local-dir: ./dist/
+          server-dir: /kitsune/
 
       - name: 完成
         run: echo deploy by ftp
