@@ -8,27 +8,37 @@ env:
 
 jobs:
   build:
-    name: 构建
+    name: 构建,发布
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: npm install, build, and test
-        run: |
-          # Build and test the project, then
-          npm install
-          npm run build:stage --if-present
-          # npm run test --if-present
+    - uses: actions/checkout@v2
 
-      - name: 静态发布
-      - uses: SamKirkland/FTP-Deploy-Action@2.0.0
-        env:
-          FTP_SERVER: serfend.top
-          FTP_USERNAME: ${{ secrets.FTP_PASSWORD }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          LOCAL_DIR: ./dist
-          REMOTE_DIR: /kitsune
-          ARGS: --delete --transfer-all --exclude=logreport --verbose
+    # Runs a single command using the runners shell
+    - name: 测试ci单行
+      run: echo Hello, world!
+
+    # Runs a set of commands using the runners shell
+    - name: 测试ci多行
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
+    - name: 使用 Node.js ${{ env.NODE_VERSION }} 构建包
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: 构建执行
+      run: |
+        npm install
+        npm run lint
+        npm run build:stage
+        
+    - name: 静态发布到ftp
+    - uses: SamKirkland/FTP-Deploy-Action@2.0.0
+      env:
+        FTP_SERVER: serfend.top
+        FTP_USERNAME: ${{ secrets.FTP_PASSWORD }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        LOCAL_DIR: ./dist
+        REMOTE_DIR: /kitsune
+        ARGS: --delete --transfer-all --exclude=logreport --verbose
+      run: echo deploy by ftp
