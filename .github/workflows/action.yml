@@ -33,7 +33,7 @@ jobs:
         npm run build:stage
         
     - name: 静态发布到ftp
-    - uses: SamKirkland/FTP-Deploy-Action@2.0.0
+      uses: SamKirkland/FTP-Deploy-Action@2.0.0
       env:
         FTP_SERVER: serfend.top
         FTP_USERNAME: ${{ secrets.FTP_PASSWORD }}
