@@ -73,7 +73,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$el)
       this.chart.showLoading()
-      this.fileLoad('connection-data.json').then(data => {
+      this.fileLoad('connection-data202012012128-outer.json').then(data => {
         this.graph = {
           nodes: data
         }
@@ -109,21 +109,33 @@ export default {
     },
     initChartSkeleton() {
       const self = this
-      this.chart.on('dblclick', (event) => { this.handle_show_detail(event) })
       const categories = ['前台', '后台', '外部', '防御成功', '威胁']
       const colors = ['#33c', '#3c3', '#aaa', '#cc3', '#c33']
       let links = []
       const graph = this.graph
       console.log(graph)
-      graph.nodes.forEach(function (node, index) {
+      const item_dict = {}
+      graph.nodes.forEach((node, index) => {
+        if (item_dict[node.id]) {
+          console.warn(node.id, 'is already exist')
+        }
+        item_dict[node.id] = node
         node.symbolSize = Math.log(node.value) * 3 + 2 + (node.danger ? 5 : 0)
         node.label = {
           show: node.value > 30
         }
-        node.id = index
+      })
+      graph.nodes.forEach((node, index) => {
         if (node.danger) {
           node.category = 4
-        } else if (node.link && node.link.length > 10 && node.link.reduce((prev, cur) => graph.nodes[cur].value + parseInt(prev), 0) < node.link.length * 21) {
+        } else if (node.link && node.link.length > 10 && node.link.reduce((prev, cur) => {
+          const c = item_dict[cur]
+          if (!c) {
+            console.warn(cur, 'is not exist')
+            return parseInt(prev)
+          }
+          return c.value + parseInt(prev)
+        }, 0) < node.link.length * 21) {
           node.category = 3
         } else {
           node.category = self.getCategory(node.name)
@@ -192,7 +204,7 @@ export default {
             categories: categories.map(i => ({ name: i })),
             roam: true,
             edgeSymbol: ['none', 'arrow'],
-            focusNodeAdjacency: true,
+            // focusNodeAdjacency: true,
             itemStyle: {
               borderColor: '#fff',
               borderWidth: 1,
