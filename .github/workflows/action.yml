@@ -1,7 +1,7 @@
 name: web deploy by ftp
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 env:
   NODE_VERSION: "10.x" # set this to the node version to use
@@ -11,36 +11,36 @@ jobs:
     name: 构建,发布
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      name: 初始化 checkout
-    # Runs a single command using the runners shell
-    - name: 测试ci单行
-      run: echo Hello, world!
+      - uses: actions/checkout@v2
+        name: 初始化 checkout
+      # Runs a single command using the runners shell
+      - name: 测试ci单行
+        run: echo Hello, world!
 
-    # Runs a set of commands using the runners shell
-    - name: 测试ci多行
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
-        
-    - name: 使用 Node.js ${{ env.NODE_VERSION }} 构建包
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    - name: 构建执行
-      run: |
-        npm install
-        npm run lint
-        npm run build:stage
-        
-    - name: 静态发布到ftp
-      uses: SamKirkland/FTP-Deploy-Action@4.0.0
-      env:
-        ftp-server: ${{ secrets.FTP_HOST }}
-        ftp-username: ${{ secrets.FTP_USERNAME }}
-        ftp-password: ${{ secrets.FTP_PASSWORD }}
-        ftp-local-dir: ./dist
-        ftp-server-dir: /kitsune
+      # Runs a set of commands using the runners shell
+      - name: 测试ci多行
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
 
-    - name: 完成
-      run: echo deploy by ftp
+      - name: 使用 Node.js ${{ env.NODE_VERSION }} 构建包
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: 构建执行
+        run: |
+          npm install
+          npm run lint
+          npm run build:stage
+
+      - name: 静态发布到ftp
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist
+          server-dir: /kitsune
+
+      - name: 完成
+        run: echo deploy by ftp
