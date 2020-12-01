@@ -35,3 +35,4 @@ jobs:
           LOCAL_DIR: ./dist
           REMOTE_DIR: /kitsune/
           ARGS: --delete --transfer-all --exclude=logreport --verbose
+
