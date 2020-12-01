@@ -1,11 +1,10 @@
-
+name: web deploy by ftp
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
 
 env:
-  NODE_VERSION: "12.x" # set this to the node version to use
+  NODE_VERSION: "10.x" # set this to the node version to use
 
 jobs:
   build:
@@ -23,16 +22,13 @@ jobs:
           npm install
           npm run build:stage --if-present
           # npm run test --if-present
-  deploy:
-    name: 静态发布
-    runs-on: ubuntu-latest
-    steps:
+
+      - name: 静态发布
       - uses: SamKirkland/FTP-Deploy-Action@2.0.0
         env:
           FTP_SERVER: serfend.top
           FTP_USERNAME: ${{ secrets.FTP_PASSWORD }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           LOCAL_DIR: ./dist
-          REMOTE_DIR: /kitsune/
+          REMOTE_DIR: /kitsune
           ARGS: --delete --transfer-all --exclude=logreport --verbose
-
