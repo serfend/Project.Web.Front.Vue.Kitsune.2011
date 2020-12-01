@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
+      name: 初始化 checkout
     # Runs a single command using the runners shell
     - name: 测试ci单行
       run: echo Hello, world!
@@ -22,6 +22,7 @@ jobs:
       run: |
         echo Add other actions to build,
         echo test, and deploy your project.
+        
     - name: 使用 Node.js ${{ env.NODE_VERSION }} 构建包
       uses: actions/setup-node@v1
       with:
@@ -41,4 +42,6 @@ jobs:
         LOCAL_DIR: ./dist
         REMOTE_DIR: /kitsune
         ARGS: --delete --transfer-all --exclude=logreport --verbose
+
+    - name: 完成
       run: echo deploy by ftp
