@@ -36,11 +36,11 @@ jobs:
     - name: 静态发布到ftp
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       env:
-        server: ${{ secrets.FTP_HOST }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./dist
-        server-dir: /kitsune
+        ftp-server: ${{ secrets.FTP_HOST }}
+        ftp-username: ${{ secrets.FTP_USERNAME }}
+        ftp-password: ${{ secrets.FTP_PASSWORD }}
+        ftp-local-dir: ./dist
+        ftp-server-dir: /kitsune
 
     - name: 完成
       run: echo deploy by ftp
