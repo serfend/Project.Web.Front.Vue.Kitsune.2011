@@ -130,7 +130,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$refs.chart.$el)
       this.chart.showLoading(null, { text: '数据加载中' })
-      const actions = [this.fileLoad('connection-data202012021701.json'), this.initChartSkeleton()]
+      const actions = [this.fileLoad('connection-data202012022300.json'), this.initChartSkeleton()]
       Promise.all(actions).then(data => {
         const graph = data[0]
         this.chart.hideLoading()
@@ -165,10 +165,14 @@ export default {
           node.category = self.getCategory(node.name)
         }
         if (node.link) {
-          links = links.concat(node.link.filter(i => item_dict[i]).map(idx => {
-            const item = item_dict[idx]
-            return { target: index, source: item.index }
-          }))
+          const node_links = Object.keys(node.link)
+          links = links.concat(
+            node_links
+              .filter(i => item_dict[i])
+              .map(idx => {
+                const item = item_dict[idx]
+                return { target: index, source: item.index, links: node.link[idx] }
+              }))
         }
       })
       console.log(nodes)
@@ -205,6 +209,12 @@ export default {
         default: return 2
       }
     },
+    handle_sort_port_detail_info(arr, details_dict) {
+      return arr.sort((i1, i2) => details_dict[i2] - details_dict[i1]).slice(0, 10).map(p => {
+        const sci_port = formatSciItem(details_dict[p])
+        return `【${p}】${sci_port.value}${sci_port.suffix}B`
+      })
+    },
     format_tooltip(params, ticket, async_callback) {
       let r = []
       if (params.data.id) {
@@ -213,19 +223,21 @@ export default {
         r.push(`设备序号： ${id}`)
         r.push(`所属区域： ${this.categories[category]}`)
         r.push(`主机名称： ${params.name}`)
-        r.push(`流量大小： ${sci.value}${sci.suffix}B`)
+        r.push(`接收流量： ${sci.value}${sci.suffix}B`)
         if (details) {
           const details_keys = Object.keys(details)
-          r.push(`关联节点： ${link && link.length}个<hr>接收端口：${details_keys.length}个`)
-          const arrays = details_keys.sort((i1, i2) => details[i2] - details[i1]).slice(0, 10).map(p => {
-            const sci_port = formatSciItem(details[p])
-            return `【${p}】${sci_port.value}${sci_port.suffix}B`
-          })
+          r.push(`关联节点： ${link && Object.keys(link).length}个<hr>接收端口：${details_keys.length}个`)
+          const arrays = this.handle_sort_port_detail_info(details_keys, details)
           r = r.concat(arrays)
         }
       } else {
-        const { source, target } = params.data
+        const { source, target, links } = params.data
         r.push(`${this.graph.nodes[source].name} -> ${this.graph.nodes[target].name}`)
+        const links_arr_key = Object.keys(links)
+        const total_traffic = links_arr_key.reduce((prev, cur) => prev + links[cur], 0)
+        const sci_total_traffic = formatSciItem(total_traffic)
+        r.push(`流量总计:${sci_total_traffic.value}${sci_total_traffic.suffix}B<hr>连接情况：`)
+        r = r.concat(this.handle_sort_port_detail_info(links_arr_key, links))
       }
       return r.join('<br>')
     },
