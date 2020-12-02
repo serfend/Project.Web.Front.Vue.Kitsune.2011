@@ -2,10 +2,8 @@
 name: web deploy by ftp
 # trigger on which this CI should be run
 on:
-	# push operation is operate
-  push: 
-    # here since my repository branch is named `main` , you should follow your own repository like `master`
-    branches: [main] 
+  push: # push operation is operate
+    branches: [main] # here since my repository branch is named `main` , you should follow your own repository like `master`
 # CI enviroment settings
 env:
   NODE_VERSION: "10.x" # custom arg of node.js's version
@@ -14,16 +12,13 @@ jobs:
     name: 构建,发布
     runs-on: ubuntu-latest
     steps:
-      # here are some step followed , each step must have `uses` or `run` key , for CI to run
-      # other key like `name`,`with`,`env` is optional
-      - uses: actions/checkout@v2
-        name: 初始化 checkout
-      # Runs a single command using the runners shell
-      - name: 测试ci单行
+      - uses: actions/checkout@v2 # here are some step followed , each step must have `uses` or `run` key , for CI to run
+        name: 初始化 checkout # other key like `name`,`with`,`env` is optional
+
+      - name: 测试ci单行 # Runs a single command using the runners shell
         run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
-      - name: 测试ci多行
+      - name: 测试ci多行 # Runs a set of commands using the runners shell
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
@@ -36,15 +31,12 @@ jobs:
           npm install
           npm run lint
           npm run build:stage
-      # i use `SamKirkland/FTP-Deploy-Action@4.0.0` for ftp deploy
-      # you can referer to github.com/SamKirkland/FTP-Deploy-Action for more infomation
-      - name: 静态发布到ftp
-        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+
+      - name: 静态发布到ftp # i use `SamKirkland/FTP-Deploy-Action@4.0.0` for ftp deploy
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0 # you can referer to github.com/SamKirkland/FTP-Deploy-Action for more infomation
         with:
-          # `${{arg}}` is a template from which you set in `secrets` menu
-          # as `yml` file is follow .git upload to github ,`secrets` is to prevent your sensitive infomation from exposed to public
-          server: ${{ secrets.FTP_HOST }}  
-          username: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_HOST }} # `${{arg}}` is a template from which you set in `secrets` menu
+          username: ${{ secrets.FTP_USERNAME }} # as `yml` file is follow .git upload to github ,`secrets` is to prevent your sensitive infomation from exposed to public
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: /kitsune/
