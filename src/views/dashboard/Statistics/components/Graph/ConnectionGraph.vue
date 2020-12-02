@@ -90,7 +90,7 @@ export default {
       handler(v) {
         const node = this.item_dict[v]
         const prev_size = node.symbolSize
-        node.symbolSize = 50
+        node.symbolSize = 150
         this.refreshData()
         setTimeout(() => {
           node.symbolSize = prev_size
@@ -130,7 +130,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$refs.chart.$el)
       this.chart.showLoading(null, { text: '数据加载中' })
-      const actions = [this.fileLoad('connection-data202012012128-fix.json'), this.initChartSkeleton()]
+      const actions = [this.fileLoad('connection-data202012021701.json'), this.initChartSkeleton()]
       Promise.all(actions).then(data => {
         const graph = data[0]
         this.chart.hideLoading()
@@ -150,9 +150,10 @@ export default {
         if (item_dict[node.id]) {
           console.warn(node.id, 'is already exist')
         }
+        node.index = index
         item_dict[node.id] = node
         if (node.value <= 0) node.value = 1
-        node.symbolSize = Math.log(node.value) * 3 + 10 + (node.danger ? 5 : 0)
+        node.symbolSize = Math.log(node.value) * 2 + 15 + (node.danger ? 45 : 0)
         node.label = {
           show: node.value > 30
         }
@@ -163,7 +164,12 @@ export default {
         } else {
           node.category = self.getCategory(node.name)
         }
-        if (node.link) links = links.concat(node.link.map(i => ({ target: index, source: i - 1 })))
+        if (node.link) {
+          links = links.concat(node.link.filter(i => item_dict[i]).map(idx => {
+            const item = item_dict[idx]
+            return { target: index, source: item.index }
+          }))
+        }
       })
       console.log(nodes)
       this.graph = {
@@ -201,24 +207,25 @@ export default {
     },
     format_tooltip(params, ticket, async_callback) {
       let r = []
-      if (params.data.source) {
-        const { source, target } = params.data
-        r.push(`${this.graph.nodes[source].name} > ${this.graph.nodes[target].name}`)
-      } else {
-        const { category, details, value, link } = params.data
+      if (params.data.id) {
+        const { id, category, details, value, link } = params.data
         const sci = formatSciItem(value)
-        let links = ''
-        if (link) {
-          links = `${link.length}个连接`
-        }
-        r.push(`${this.categories[category]} ${params.name} (${sci.value}${sci.suffix}B)${links}<hr>${details ? '被连接情况' : '无详细信息'}:`)
+        r.push(`设备序号： ${id}`)
+        r.push(`所属区域： ${this.categories[category]}`)
+        r.push(`主机名称： ${params.name}`)
+        r.push(`流量大小： ${sci.value}${sci.suffix}B`)
         if (details) {
-          const arrays = Object.keys(details).map(p => {
+          const details_keys = Object.keys(details)
+          r.push(`关联节点： ${link && link.length}个<hr>接收端口：${details_keys.length}个`)
+          const arrays = details_keys.sort((i1, i2) => details[i1] - details[i2]).slice(0, 10).map(p => {
             const sci_port = formatSciItem(details[p])
             return `【${p}】${sci_port.value}${sci_port.suffix}B`
           })
           r = r.concat(arrays)
         }
+      } else {
+        const { source, target } = params.data
+        r.push(`${this.graph.nodes[source].name} -> ${this.graph.nodes[target].name}`)
       }
       return r.join('<br>')
     },
@@ -232,8 +239,8 @@ export default {
           color,
           force: {
             repulsion: 500,
-            // edgeLength: [10, 150],
-            // friction: 0.6
+            edgeLength: [10, 150],
+            friction: 0.6
           },
           categories: categories.map(i => ({ name: i })),
           roam: true,
