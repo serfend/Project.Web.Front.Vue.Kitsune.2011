@@ -89,10 +89,11 @@ export default {
     'filter.ip': {
       handler(v) {
         const node = this.item_dict[v]
-        node.symbolSize *= 5
+        const prev_size = node.symbolSize
+        node.symbolSize = 50
         this.refreshData()
         setTimeout(() => {
-          node.symbolSize /= 5
+          node.symbolSize = prev_size
           this.refreshData()
         }, 5000)
       }
