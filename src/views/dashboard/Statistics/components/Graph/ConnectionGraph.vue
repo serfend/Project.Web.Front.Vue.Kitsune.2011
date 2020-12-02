@@ -217,7 +217,7 @@ export default {
         if (details) {
           const details_keys = Object.keys(details)
           r.push(`关联节点： ${link && link.length}个<hr>接收端口：${details_keys.length}个`)
-          const arrays = details_keys.sort((i1, i2) => details[i1] - details[i2]).slice(0, 10).map(p => {
+          const arrays = details_keys.sort((i1, i2) => details[i2] - details[i1]).slice(0, 10).map(p => {
             const sci_port = formatSciItem(details[p])
             return `【${p}】${sci_port.value}${sci_port.suffix}B`
           })

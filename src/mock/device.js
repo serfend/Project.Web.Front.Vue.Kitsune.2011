@@ -51,17 +51,17 @@ const devices = function (date) {
       runtime: [
         {
           name: 'CPU使用率',
-          current: 22 + Math.floor(m * 0.4 + Math.random() * 5),
+          current: Math.floor(22 + Math.floor(m * 0.4 + Math.random() * 5)),
           color: '#00ffff'
         },
         {
           name: '内存使用率',
-          current: 3152511115 + m * 10e6 + s * Math.random(Math.random) + 5 * 10e4,
+          current: Math.floor(3152511115 + m * 10e6 + s * Math.random() * 10e4 + 5 * 10e4),
           total: 15268713416,
           color: '#ff0000'
         }, {
           name: '磁盘使用率',
-          current: 15021251441236 + m * 3 * 10e5 + Math.random() * 10e7,
+          current: Math.floor(15021251441236 + m * 3 * 10e5 + Math.random() * 10e7),
           total: 27284841053187,
           color: '#00ff00'
         }
@@ -69,20 +69,20 @@ const devices = function (date) {
       traffic: [
         {
           name: '发出数据包',
-          current: Math.random() * 10e4 + s * 3 * 10e2,
+          current: Math.floor(Math.random() * 10e4 + s * 3 * 10e2),
           color: '#ffff00'
         },
         {
           name: '接收数据包',
-          current: Math.random() * 10e4 * 2.2 + s * 8.43 * 10e2,
+          current: Math.floor(Math.random() * 10e4 * 2.2 + s * 8.43 * 10e2),
           color: '#ff0000'
         }, {
           name: '接收流量',
-          current: Math.random() * 10e6 * 1.5 + s * 4.23 * 10e3,
+          current: Math.floor(Math.random() * 10e6 * 1.5 + s * 4.23 * 10e3),
           color: '#00ffff'
         }, {
           name: '发出流量',
-          current: Math.random() * 10e6 * 1.1 + s * 5.24 * 10e3,
+          current: Math.floor(Math.random() * 10e6 * 1.1 + s * 5.24 * 10e3),
           color: '#00ff00'
         }
       ]
@@ -102,31 +102,31 @@ const devices = function (date) {
         },
         {
           name: '内存使用率',
-          current: 1751511115 + m * 10e6 + s * Math.random() * 3 * 10e4 + 5 * 10e4,
+          current: Math.floor(1751511115 + m * 10e6 + s * Math.random() * 3 * 10e4 + 5 * 10e4),
           total: 15268713416,
         }, {
           name: '磁盘使用率',
-          current: 15331251441236 + m * 3 * 10e5 + Math.random() * 10e7,
+          current: Math.floor(15331251441236 + m * 3 * 10e5 + Math.random() * 10e7),
           total: 27284841053187,
         }
       ],
       traffic: [
         {
           name: '发出数据包',
-          current: Math.random() * 10e4 + s * 3 * 10e2,
+          current: Math.floor(Math.random() * 10e4 + s * 3 * 10e2),
           color: '#ff0000'
         },
         {
           name: '接收数据包',
-          current: Math.random() * 10e4 * 2.2 + s * 5.43 * 10e2,
+          current: Math.floor(Math.random() * 10e4 * 2.2 + s * 5.43 * 10e2),
           color: '#ff0000'
         }, {
           name: '接收流量',
-          current: Math.random() * 10e6 * 1.5 + s * 4.23 * 10e3,
+          current: Math.floor(Math.random() * 10e6 * 1.5 + s * 4.23 * 10e3),
           color: '#00ff00'
         }, {
           name: '发出流量',
-          current: Math.random() * 10e6 * 1.2 + s * 5.24 * 10e3,
+          current: Math.floor(Math.random() * 10e6 * 1.2 + s * 5.24 * 10e3),
           color: '#00ff00'
         }
       ]
@@ -146,31 +146,31 @@ const devices = function (date) {
         },
         {
           name: '内存使用率',
-          current: 6442511115 + m * 10e6 + s * Math.random() * 3 * 10e4 + 5 * 10e4,
+          current: Math.floor(6442511115 + m * 10e6 + s * Math.random() * 3 * 10e4 + 5 * 10e4),
           total: 15268713416,
         }, {
           name: '磁盘使用率',
-          current: 15271251441236 + m * 3 * 10e5 + Math.random() * 10e7,
+          current: Math.floor(15271251441236 + m * 3 * 10e5 + Math.random() * 10e7),
           total: 27284841053187,
         }
       ],
       traffic: [
         {
           name: '发出数据包',
-          current: Math.random() * 10e4 + s * 3.81 * 10e2,
+          current: Math.floor(Math.random() * 10e4 + s * 3.81 * 10e2),
           color: '#ff0000'
         },
         {
           name: '接收数据包',
-          current: Math.random() * 10e4 + s * 4.13 * 10e2,
+          current: Math.floor(Math.random() * 10e4 + s * 4.13 * 10e2),
           color: '#ff0000'
         }, {
           name: '接收流量',
-          current: Math.random() * 10e6 * 1.2 + s * 9.23 * 10e3,
+          current: Math.floor(Math.random() * 10e6 * 1.2 + s * 9.23 * 10e3),
           color: '#00ff00'
         }, {
           name: '发出流量',
-          current: Math.random() * 10e6 * 1.5 + s * 15.24 * 10e3,
+          current: Math.floor(Math.random() * 10e6 * 1.5 + s * 15.24 * 10e3),
           color: '#00ff00'
         }
       ]
@@ -186,35 +186,35 @@ const devices = function (date) {
       runtime: [
         {
           name: 'CPU使用率',
-          current: Math.floor(m * 0.35 + Math.random() * 5),
+          current: Math.floor(Math.floor(m * 0.35 + Math.random() * 5)),
         },
         {
           name: '内存使用率',
-          current: 6442511115 + m * 10e6 + s * Math.random(Math.random) + 5 * 10e4,
+          current: Math.floor(6442511115 + m * 10e6 + s * Math.random(Math.random) * 10e4 + 5 * 10e4),
           total: 15268713416,
         }, {
           name: '磁盘使用率',
-          current: 71251441236 + m * 3 * 10e5 + Math.random() * 10e7,
+          current: Math.floor(71251441236 + m * 3 * 10e5 + Math.random() * 10e7),
           total: 9313225746154,
         }
       ],
       traffic: [
         {
           name: '发出数据包',
-          current: Math.random() * 10e3 * 3.5 + s * 2.12 * 10e1,
+          current: Math.floor(Math.random() * 10e3 * 3.5 + s * 2.12 * 10e1),
           color: '#ff0000'
         },
         {
           name: '接收数据包',
-          current: Math.random() * 10e3 * 3.5 + s * 8.24 * 10e1,
+          current: Math.floor(Math.random() * 10e3 * 3.5 + s * 8.24 * 10e1),
           color: '#ff0000'
         }, {
           name: '接收流量',
-          current: Math.random() * 10e5 * 3.5 + s * 1.23 * 10e2,
+          current: Math.floor(Math.random() * 10e5 * 3.5 + s * 1.23 * 10e2),
           color: '#00ff00'
         }, {
           name: '发出流量',
-          current: Math.random() * 10e5 * 1.1 + s * 3.24 * 10e2,
+          current: Math.floor(Math.random() * 10e5 * 1.1 + s * 3.24 * 10e2),
           color: '#00ff00'
         }
       ]
