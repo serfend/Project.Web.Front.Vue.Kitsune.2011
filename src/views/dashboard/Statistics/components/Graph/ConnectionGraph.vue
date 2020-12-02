@@ -219,11 +219,12 @@ export default {
       let r = []
       if (params.data.id) {
         const { id, category, details, value, link } = params.data
-        const sci = formatSciItem(value)
+        const sci = value <= 1 ? { value: '无', suffix: '' } : formatSciItem(value)
+        if (value > 1) sci.suffix = `${sci.suffix}B`
         r.push(`设备序号： ${id}`)
-        r.push(`所属区域： ${this.categories[category]}`)
+        r.push(`所属区域： ${params.marker}${this.categories[category]}`)
         r.push(`主机名称： ${params.name}`)
-        r.push(`接收流量： ${sci.value}${sci.suffix}B`)
+        r.push(`接收流量： ${sci.value}${sci.suffix}`)
         if (details) {
           const details_keys = Object.keys(details)
           r.push(`关联节点： ${link && Object.keys(link).length}个<hr>接收端口：${details_keys.length}个`)
