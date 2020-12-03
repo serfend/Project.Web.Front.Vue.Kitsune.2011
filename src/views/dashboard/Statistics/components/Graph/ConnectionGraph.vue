@@ -132,7 +132,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$refs.chart.$el)
       this.chart.showLoading(null, { text: '数据加载中' })
-      const actions = [this.fileLoad('connection-data202012030924.json'), this.initChartSkeleton()]
+      const actions = [this.fileLoad('connection-data202012031115.json'), this.initChartSkeleton()]
       Promise.all(actions).then(data => {
         const graph = data[0]
         this.chart.hideLoading()
@@ -164,6 +164,11 @@ export default {
       nodes.forEach((node, index) => {
         if (node.danger) {
           node.category = 4
+        } else if (node.link && Object.keys(node.link)
+          .findIndex(i =>
+            Object.keys(node.link[i])
+              .findIndex(port => node.link[i][port] < 1) > -1) > -1) {
+          node.category = 3
         } else {
           node.category = self.getCategory(node.name)
         }
