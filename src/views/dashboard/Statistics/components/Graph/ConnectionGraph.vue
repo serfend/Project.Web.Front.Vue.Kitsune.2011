@@ -63,7 +63,7 @@ export default {
     },
     color: {
       type: Array,
-      default: () => ['#05f', '#0f0', '#aaa', '#e50', '#f33']
+      default: () => ['#05f', '#0f0', '#aaa', '#7DE5FB', '#f33']
     },
     data: {
       type: Object,
@@ -132,7 +132,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$refs.chart.$el)
       this.chart.showLoading(null, { text: '数据加载中' })
-      const actions = [this.fileLoad('connection-data202012031115.json'), this.initChartSkeleton()]
+      const actions = [this.fileLoad('connection-data202012031214.json'), this.initChartSkeleton()]
       Promise.all(actions).then(data => {
         const graph = data[0]
         this.chart.hideLoading()
