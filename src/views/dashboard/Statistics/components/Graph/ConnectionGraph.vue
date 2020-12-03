@@ -15,7 +15,7 @@
             <el-option
               v-for="node in ip_filter_options"
               :key="node.id"
-              :label="`[${node.id}]${node.name}`"
+              :label="`[${node.id}]${node.name} ${format_sci(node.output)}/${format_sci(node.input)}`"
               :value="node.id"
             />
           </el-select>
@@ -89,23 +89,18 @@ export default {
     'filter.ip': {
       handler(v) {
         const node = this.item_dict[v]
-        const prev_size = node.symbolSize
-        node.symbolSize = 150
-        this.refreshData()
-        setTimeout(() => {
-          node.symbolSize = prev_size
-          this.refreshData()
-        }, 5000)
+        this.chart.dispatchAction({
+          type: 'focusNodeAdjacency',
+          // 使用 seriesId 或 seriesIndex 或 seriesName 来指定 series.
+          // seriesId: 'xxx',
+          seriesIndex: 0,
+          // seriesName: 'nnn',
+          // 使用 dataIndex 来指定目标节点，或者使用 edgeDataIndex 来指定目标边。
+          dataIndex: node.index,
+          // edgeDataIndex: 5
+        })
       }
     },
-    data: {
-      handler(v) {
-        this.$nextTick(() => {
-          this.updatedData()
-        })
-      },
-      deep: true
-    }
   },
   mounted() {
     this.initChart()
@@ -118,10 +113,17 @@ export default {
     this.chart = null
   },
   methods: {
+    format_sci(node) {
+      const f = formatSciItem(node)
+      return `${f.value}${f.suffix}B`
+    },
     search_ip(query) {
       if (query !== '') {
         this.search_ip_loading = true
-        this.ip_filter_options = this.graph.nodes.filter(i => i.name.indexOf(query) > -1)
+        this.ip_filter_options =
+          this.graph.nodes
+            .filter(i => i.name.indexOf(query) > -1)
+            .sort((i1, i2) => i2.traffic_sum - i1.traffic_sum)
         this.search_ip_loading = false
       } else {
         this.search_ip_loading = []
@@ -130,7 +132,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$refs.chart.$el)
       this.chart.showLoading(null, { text: '数据加载中' })
-      const actions = [this.fileLoad('connection-data202012022300.json'), this.initChartSkeleton()]
+      const actions = [this.fileLoad('connection-data202012030924.json'), this.initChartSkeleton()]
       Promise.all(actions).then(data => {
         const graph = data[0]
         this.chart.hideLoading()
@@ -151,11 +153,12 @@ export default {
           console.warn(node.id, 'is already exist')
         }
         node.index = index
+        node.traffic_sum = node.input + node.output
         item_dict[node.id] = node
-        if (node.value <= 0) node.value = 1
-        node.symbolSize = Math.log(node.value) * 2 + 15 + (node.danger ? 45 : 0)
+        if (node.traffic_sum <= 0) node.traffic_sum = 1
+        node.symbolSize = Math.log(node.traffic_sum) * 5 + 15 + (node.danger ? 80 : 0)
         node.label = {
-          show: node.value > 30
+          show: node.traffic_sum > 30
         }
       })
       nodes.forEach((node, index) => {
@@ -175,7 +178,6 @@ export default {
               }))
         }
       })
-      console.log(nodes)
       this.graph = {
         nodes, links
       }
@@ -185,21 +187,9 @@ export default {
       const { nodes, links } = this.graph
       series[0].data = nodes
       series[0].links = links
-      // console.log(series)
       this.chart.setOption({
         series: series
       })
-    },
-    handle_show_detail(event) {
-      this.$refs.ConnectionDetail.show_dialog(event)
-      // show dialog for detail
-      // let routeUrl = this.$router.resolve({
-      //   path: '/alicenter/detail',
-      //   query: {
-      //     id: id
-      //   }
-      // })
-      // window.open(routeUrl.href, '_blank')
     },
     getCategory(ip) {
       const arrs = ip.split('.')
@@ -210,21 +200,30 @@ export default {
       }
     },
     handle_sort_port_detail_info(arr, details_dict) {
-      return arr.sort((i1, i2) => details_dict[i2] - details_dict[i1]).slice(0, 10).map(p => {
-        const sci_port = formatSciItem(details_dict[p])
-        return `【${p}】${sci_port.value}${sci_port.suffix}B`
-      })
+      const port_show_count = 10
+      const result = arr
+        .sort((i1, i2) => details_dict[i2] - details_dict[i1])
+        .slice(0, port_show_count)
+        .map(p => {
+          const sci_port = this.format_sci(details_dict[p])
+          return `【${p}】${sci_port}`
+        })
+      if (arr.length > port_show_count) {
+        const other_port_traffic = arr.slice(10).reduce((prev, cur) => prev + details_dict[cur], 0)
+        result.push(`其他${arr.length - port_show_count}个端口 ${this.format_sci(other_port_traffic)}流量...`)
+      }
+      return result
     },
     format_tooltip(params, ticket, async_callback) {
       let r = []
       if (params.data.id) {
-        const { id, category, details, value, link } = params.data
-        const sci = value <= 1 ? { value: '无', suffix: '' } : formatSciItem(value)
-        if (value > 1) sci.suffix = `${sci.suffix}B`
+        const { id, category, details, traffic_sum, input, output, link } = params.data
         r.push(`设备序号： ${id}`)
         r.push(`所属区域： ${params.marker}${this.categories[category]}`)
         r.push(`主机名称： ${params.name}`)
-        r.push(`接收流量： ${sci.value}${sci.suffix}`)
+        r.push(`总计流量： ${this.format_sci(traffic_sum)}`)
+        r.push(`连入交互： ${this.format_sci(input)}`)
+        r.push(`连出交互： ${this.format_sci(output)}`)
         if (details) {
           const details_keys = Object.keys(details)
           r.push(`关联节点： ${link && Object.keys(link).length}个<hr>接收端口：${details_keys.length}个`)
@@ -236,8 +235,7 @@ export default {
         r.push(`${this.graph.nodes[source].name} -> ${this.graph.nodes[target].name}`)
         const links_arr_key = Object.keys(links)
         const total_traffic = links_arr_key.reduce((prev, cur) => prev + links[cur], 0)
-        const sci_total_traffic = formatSciItem(total_traffic)
-        r.push(`流量总计:${sci_total_traffic.value}${sci_total_traffic.suffix}B<hr>连接情况：`)
+        r.push(`流量总计:${this.format_sci(total_traffic)}<hr>连接情况：${links_arr_key.length}个端口`)
         r = r.concat(this.handle_sort_port_detail_info(links_arr_key, links))
       }
       return r.join('<br>')
@@ -250,9 +248,10 @@ export default {
           type: 'graph',
           layout: 'force',
           color,
+          zoom: 10e-4 * 2,
           force: {
-            repulsion: 500,
-            edgeLength: [10, 150],
+            repulsion: 5 * 10e5,
+            edgeLength: [10, 1500],
             friction: 0.6
           },
           categories: categories.map(i => ({ name: i })),
@@ -260,12 +259,12 @@ export default {
           edgeSymbol: ['none', 'arrow'],
           draggable: true,
           focusNodeAdjacency: true,
-          // itemStyle: {
-          //   borderColor: '#fff',
-          //   borderWidth: 1,
-          //   shadowBlur: 10,
-          //   shadowColor: 'rgba(0, 0, 0, 0.3)'
-          // },
+          itemStyle: {
+            borderColor: '#fff',
+            borderWidth: 2,
+            shadowBlur: 10,
+            shadowColor: 'rgba(0, 0, 0, 0.3)'
+          },
           emphasis: {
             lineStyle: {
               width: 2
