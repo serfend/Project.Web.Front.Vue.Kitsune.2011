@@ -239,7 +239,7 @@ export default {
           r.push('<hr><table>')
           r.push(`<tr><th>接收端口${port_in_keys.length}个</th><th>发出端口${port_out_keys.length}个</th></tr>`)
           const port_in_arrays = this.handle_sort_port_detail_info(port_in_keys, port_in)
-          const port_out_arrays = this.handle_sort_port_detail_info(port_out_keys, port_in)
+          const port_out_arrays = this.handle_sort_port_detail_info(port_out_keys, port_out)
           const_array.forEach((v, i) => {
             const p_in = port_in_arrays[i]
             const p_out = port_out_arrays[i]
