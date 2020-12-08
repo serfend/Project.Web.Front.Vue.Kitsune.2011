@@ -160,7 +160,7 @@ export default {
         node.danger = node.danger_rate > 1
         node.symbolSize = Math.log(node.traffic_sum) * 5 + 15 + (node.danger ? 80 : 0)
         node.label = {
-          show: node.traffic_sum > 30
+          show: node.traffic_sum > 65 // 统计大于100K或者高危的
         }
       })
       nodes.forEach((node, index) => {
