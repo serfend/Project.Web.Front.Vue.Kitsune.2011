@@ -15,7 +15,7 @@
             <el-option
               v-for="node in ip_filter_options"
               :key="node.id"
-              :label="`[${node.id}]${node.name} ${format_sci(node.output)}/${format_sci(node.input)}`"
+              :label="`[${node.id}]${node.name} ${format_sci(node.traffic_out)}/${format_sci(node.traffic_in)}`"
               :value="node.id"
             />
           </el-select>
@@ -34,6 +34,7 @@ import chart from './chart'
 import echarts from 'echarts'
 import 'echarts-gl'
 import { formatSciItem } from '@/utils/math'
+const const_array = new Array(11).fill(1)
 export default {
   name: 'ConnectionGraph',
   components: { chart },
@@ -132,7 +133,7 @@ export default {
     initChart() {
       this.chart = echarts.init(this.$refs.chart.$el)
       this.chart.showLoading(null, { text: '数据加载中' })
-      const actions = [this.fileLoad('connection-data202012031214.json'), this.initChartSkeleton()]
+      const actions = [this.fileLoad('connection-data202012081126.json'), this.initChartSkeleton()]
       Promise.all(actions).then(data => {
         const graph = data[0]
         this.chart.hideLoading()
@@ -153,9 +154,10 @@ export default {
           console.warn(node.id, 'is already exist')
         }
         node.index = index
-        node.traffic_sum = node.input + node.output
+        node.traffic_sum = node.traffic_out + node.traffic_in
         item_dict[node.id] = node
         if (node.traffic_sum <= 0) node.traffic_sum = 1
+        node.danger = node.danger_rate > 1
         node.symbolSize = Math.log(node.traffic_sum) * 5 + 15 + (node.danger ? 80 : 0)
         node.label = {
           show: node.traffic_sum > 30
@@ -220,30 +222,61 @@ export default {
       return result
     },
     format_tooltip(params, ticket, async_callback) {
-      let r = []
+      const r = []
       if (params.data.id) {
-        const { id, category, details, traffic_sum, input, output, link } = params.data
-        r.push(`设备序号： ${id}`)
-        r.push(`所属区域： ${params.marker}${this.categories[category]}`)
-        r.push(`主机名称： ${params.name}`)
-        r.push(`总计流量： ${this.format_sci(traffic_sum)}`)
-        r.push(`连入交互： ${this.format_sci(input)}`)
-        r.push(`连出交互： ${this.format_sci(output)}`)
-        if (details) {
-          const details_keys = Object.keys(details)
-          r.push(`关联节点： ${link && Object.keys(link).length}个<hr>接收端口：${details_keys.length}个`)
-          const arrays = this.handle_sort_port_detail_info(details_keys, details)
-          r = r.concat(arrays)
+        const { id, category, danger_rate, port_in, port_out, traffic_sum, traffic_out, traffic_in, link } = params.data
+        r.push(`设备序号： ${id}<br>`)
+        r.push(`所属区域： ${params.marker}${this.categories[category]}<br>`)
+        r.push(`主机名称： ${params.name}<br>`)
+        r.push(`总计流量： ${this.format_sci(traffic_sum)}<br>`)
+        r.push(`连入交互： ${this.format_sci(traffic_in)}<br>`)
+        r.push(`连出交互： ${this.format_sci(traffic_out)}<br>`)
+        r.push(`特征指数：${danger_rate}<br>`)
+        if (port_in || port_out) {
+          const port_in_keys = Object.keys(port_in)
+          const port_out_keys = Object.keys(port_out)
+          r.push(`关联节点： ${link && Object.keys(link).length}个<br>`)
+          r.push('<hr><table>')
+          r.push(`<tr><th>接收端口${port_in_keys.length}个</th><th>发出端口${port_out_keys.length}个</th></tr>`)
+          const port_in_arrays = this.handle_sort_port_detail_info(port_in_keys, port_in)
+          const port_out_arrays = this.handle_sort_port_detail_info(port_in_keys, port_in)
+          const_array.forEach((v, i) => {
+            const p_in = port_in_arrays[i]
+            const p_out = port_out_arrays[i]
+            if (!p_in && !p_out) return
+            r.push('<tr>')
+            r.push(`<td>${p_in || ''}</td>`)
+            r.push(`<td>${p_out || ''}</td>`)
+            r.push('</tr>')
+          })
+          r.push('</table>')
         }
       } else {
         const { source, target, links } = params.data
-        r.push(`${this.graph.nodes[source].name} -> ${this.graph.nodes[target].name}`)
+        r.push(`${this.graph.nodes[source].name} -> ${this.graph.nodes[target].name}<hr>`)
+        r.push('<table>')
+        const table_data = []
         const links_arr_key = Object.keys(links)
-        const total_traffic = links_arr_key.reduce((prev, cur) => prev + links[cur], 0)
-        r.push(`流量总计:${this.format_sci(total_traffic)}<hr>连接情况：${links_arr_key.length}个端口`)
-        r = r.concat(this.handle_sort_port_detail_info(links_arr_key, links))
+        for (let p = 0; p < links_arr_key.length; p++) {
+          const porto = links_arr_key[p]
+          const links_port_key = Object.keys(links[porto])
+          const proto_links = links[porto]
+          const total_traffic = links_port_key.reduce((prev, cur) => prev + proto_links[cur], 0)
+          const proto_desc = `<th>${porto}:${this.format_sci(total_traffic)}</th>`
+          const proto_detail = this.handle_sort_port_detail_info(links_port_key, proto_links)
+          table_data.push({ h: proto_desc, v: proto_detail })
+        }
+        r.push(`<tr>${table_data.map(i => i.h)}</tr>`)
+        const_array.forEach((v, i) => {
+          const have_any_item = table_data.some(proto => proto.v[i])
+          if (!have_any_item) return
+          r.push(`<tr>${table_data.map(proto => `<td>${proto.v[i] || ''}</td>`)}</tr>`)
+        })
+        r.push('</table>')
       }
-      return r.join('<br>')
+      const detail_info = r.join(' ')
+      console.log(detail_info)
+      return detail_info
     },
     initChartSkeleton() {
       return new Promise(res => {
